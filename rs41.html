@@ -1,0 +1,215 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>"I found an RS41" generator</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes" />
+		<style type="text/css">
+		@font-face {
+			font-family: 'Readiness';
+			src:  url('fonts/Readiness.ttf.woff') format('woff'),
+			url('fonts/Readiness.ttf.svg#Readiness') format('svg'),
+			url('fonts/Readiness.ttf.eot'),
+			url('fonts/Readiness.eot?#iefix') format('embedded-opentype'); 
+			font-weight: normal;
+			font-style: normal;
+		}
+		body { font-family: Verdana; background-color: bisque;  }
+		h1 { text-align: center }
+		fieldset {
+			margin: 10px;
+			padding: 0 10px 10px;
+			border: 1px solid #666;
+			border-radius: 8px;
+			padding-top: 10px;
+		}
+
+		canvas { border: 1px solid gray }
+		#canvas {
+			width:500px;
+			height:800px;
+			border: 1px solid gray
+		}
+		button { vertical-align: top; font-size: 28px; }
+		input:invalid { border: 2px dashed red; }
+		input:valid { border: 2px solid black; }
+		</style>
+		<link rel="stylesheet" href="css/image-picker.css">
+		<script src='js/jquery-3.7.1.min.js'></script>
+		<script src='js/datamatrix.min.js'></script>
+		<script src='js/perspective.min.js'></script>
+		<script src='js/piexif.js'></script>
+		<script src='js/image-picker.min.js'></script>
+		<script>
+var scale=1;
+
+var data = [
+	{ file: 'rs41_1', corners: [[1264.8,3344.4], [2050.8,3380.4], [2056.8,3626.4], [1252.8,3602.4]], erase: false},
+	{ file: 'rs41_2', corners: [[1122.0,3354.0], [1818.0,3300.0], [1824.0,3498.0], [1122.0,3558.0]], erase: false},
+	{ file: 'rs41_3', corners: [[218.0,1195.0], [530.0,1195.0], [532.0,1293.0], [216.0,1295.0]], erase: true},
+	{ file: 'U2110469', corners: [[396.8,1176.6], [855.0,1212.5], [839.7,1348.2], [389.1,1320.0]], erase: true},
+	{ file: 'V0311390', corners: [[304.1,1584.5], [651.3,1532.3], [663.6,1630.6], [307.2,1685.9]], erase: true},
+	{ file: 'U1720468', corners: [[125.4,1246.2], [414.7,1253.9], [409.6,1335.8], [120.3,1335.8]], erase: true},
+	{ file: 'U4254071', corners: [[712.7,1574.5],[1210.4,1596.0],[1198.1,1749.6],[700.4,1728.1]], erase: true},
+];
+
+function componentToHex(c) {
+	var hex = c.toString(16);
+	return hex.length == 1 ? "0" + hex : hex;
+}
+
+function rgbToHex(r, g, b) {
+	return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
+
+function draw(picture,id,corners,eraseBackground=false) {
+	var canvas = $('#canvas')[0];
+	var ctx = canvas.getContext("2d");
+	ctx.fillRect(0,0,canvas.width,canvas.height);
+	if (picture.naturalWidth/picture.naturalHeight<canvas.width/canvas.height) {
+		scale=picture.naturalHeight/800;
+		canvas.style.width=picture.naturalWidth/picture.naturalHeight*800+'px';
+		canvas.style.height='800px';
+	}
+	else {
+		scale=picture.naturalWidth/500;
+		canvas.style.width='500px';
+		canvas.style.height=picture.naturalHeight/picture.naturalWidth*500+'px';
+	}
+	canvas.width=picture.naturalWidth;
+	canvas.height=picture.naturalHeight;
+	ctx.drawImage(picture,0,0);
+	ctx.resetTransform();
+	var pal =["#606060"];
+	var background;
+	if (eraseBackground) {
+		var x=(corners[0][0]+2*corners[1][0]+2*corners[2][0]+corners[3][0])/6;
+		var y=(corners[0][1]+corners[1][1]+corners[2][1]+corners[3][1])/4;
+		var rgb=ctx.getImageData(x,y,1,1).data;
+		background=rgbToHex(rgb[0],rgb[1],rgb[2])
+		pal=["#606060",background];
+	}
+	const svgNode = DATAMatrix({msg:id,dim:60,pal : pal});		
+	const svg = new Blob([svgNode.outerHTML], { type:'image/svg+xml;charset=utf-8' })
+	const url = URL.createObjectURL(svg);
+	const img = new Image();
+	const fntReadiness = new FontFace('Readiness', 'url(fonts/Readiness.ttf.woff)');
+	const canvasLabel = $("#label")[0];
+	const  ctxLabel = canvasLabel.getContext("2d");
+
+	img.addEventListener('load', e => {
+		ctxLabel.clearRect(0,0,550,150);
+		ctxLabel.drawImage(e.target, 0,90);
+		URL.revokeObjectURL(url);
+
+		fntReadiness.load().then((font) => {
+			document.fonts.add(font);
+			ctxLabel.font = "15px Readiness";
+			if (eraseBackground) {
+				ctxLabel.filter='blur(12px)';
+				var tm=ctxLabel.measureText("Serial number");
+				ctxLabel.fillStyle=background;
+				ctxLabel.fillRect(383-10,112-2-tm.hangingBaseline,tm.width+20,tm.hangingBaseline+4);
+			}
+			ctxLabel.strokeStyle='#606060';
+			ctxLabel.fillStyle='#606060';
+			
+			ctxLabel.filter='blur(1px)';
+			ctxLabel.fillText("Serial number", 383,112);
+			ctxLabel.font = "28px Readiness";
+			if (eraseBackground) {
+				ctxLabel.filter='blur(12px)';
+				var tm=ctxLabel.measureText(id);
+				ctxLabel.fillStyle=background;
+				ctxLabel.fillRect(381-10,136-2-tm.hangingBaseline,tm.width+20,tm.hangingBaseline+4);
+			}
+			ctxLabel.filter='blur(1px)';
+			ctxLabel.fillStyle='#606060';
+			ctxLabel.fillText(id, 381,136);
+			
+			var p = new Perspective(ctx, canvasLabel);
+			p.draw(corners);
+		});
+	});
+	img.src=url;
+}
+
+var selected;
+
+function select(index) {
+	const img = new Image();
+	$(img).on('load',function(){
+		draw(img,$('#serial').val(),data[index].corners,data[index].erase);
+	});
+	img.src=`img/${data[index].file}.jpg`;
+	selected=index;
+}
+
+function saveImage() {
+	var tags={};
+	tags[piexif.ImageIFD.ImageDescription]='"I found an RS41" generator';
+	tags[piexif.ImageIFD.ProcessingSoftware]='"I found an RS41" generator';
+	const exif= {"0th": tags,"Exif":{},"GPS":{}};
+	const bytes=piexif.dump(exif);
+	const link = document.createElement('a');
+	const serial=$('#serial').val();
+	link.download = `rs41_${serial}.jpg`;
+	const data = $('#canvas')[0].toDataURL("image/jpeg",1.0)
+	link.href = piexif.insert(bytes,data);
+	link.click();
+}
+
+var corners=[];
+$(document).ready(function() {
+	for (i in data) {
+		var node=$('<option></option>');
+		node.data('img-src',`thumbs/${data[i].file}.jpg`);
+		node.attr('value',i);
+		$('#picker').append(node);
+	}
+	$('#picker').imagepicker();
+	$('#picker').on('change',e=>{
+		select($(e.target).find(':selected').val());
+	});
+	$('#picker').val('0').change();
+	$('#canvas').on('mousedown',(e)=>{
+		if (e.which==2) {
+			corners=[];
+			e.preventDefault();
+			e.stopPropagation();
+		}
+	});
+	$('#canvas').on('click',(e)=>{
+		const rect = $('#canvas')[0].getBoundingClientRect()
+		corners.push([(scale*(e.clientX-rect.left)).toFixed(1),(scale*(e.clientY-rect.top)).toFixed(1)]);
+		console.log(JSON.stringify(corners).replace(/"/g,''));
+	});
+	$('#serial').on('input',(e)=>{
+		console.log('input');
+		if ($('#serial')[0].validity.valid)
+			select(selected);
+	});
+});
+		</script>
+	</head>
+	<body>
+		<h1>"I found an RS41" generator</h1>
+		<div>
+			<label for 'serial'>Serial of the sonde you (did not) find</label>
+			<input type='text' id='serial' pattern='[A-Z][0-9][0-9][0-9][0-9][0-9][0-9][0-9]' onchange='draw()' value='A1234567' size='7'></input>
+			<br>
+		</div>
+		<fieldset>
+			<legend>Choose the sonde image</legend>
+			<select id='picker' class="image-picker">
+			</select>
+		</fieldset>
+		<div style='display:none'>
+			<canvas id='label' width='550' height='150'></canvas>
+		</div>
+		<div>
+			<canvas id="canvas" width="500" height="800"></canvas>
+			<button onclick='saveImage()'>Download image</button>
+		</div>
+	</body>
+</html>
