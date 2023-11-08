@@ -15,13 +15,14 @@
 			font-style: normal;
 		}
 		body { font-family: Verdana; background-color: bisque;  }
-		h1 { text-align: center }
+		h2 { text-align: center }
 		fieldset {
 			margin: 10px;
 			padding: 0 10px 10px;
 			border: 1px solid #666;
 			border-radius: 8px;
 			padding-top: 10px;
+			float:left
 		}
 
 		canvas { border: 1px solid gray }
@@ -30,8 +31,7 @@
 			height:800px;
 			border: 1px solid gray
 		}
-		button { vertical-align: top; font-size: 28px; }
-		input:invalid { border: 2px dashed red; }
+		input:invalid { border: 2px dashed red; color:red; font-weight: bold; }
 		input:valid { border: 2px solid black; }
 		</style>
 		<link rel="stylesheet" href="css/image-picker.css">
@@ -141,7 +141,7 @@ var selected;
 function select(index) {
 	const img = new Image();
 	$(img).on('load',function(){
-		draw(img,$('#serial').val(),data[index].corners,data[index].erase);
+		draw(img,$('#serial').val().toUpperCase(),data[index].corners,data[index].erase);
 	});
 	img.src=`img/${data[index].file}.jpg`;
 	selected=index;
@@ -187,30 +187,31 @@ $(document).ready(function() {
 		console.log(JSON.stringify(corners).replace(/"/g,''));
 	});
 	$('#serial').on('input',(e)=>{
-		if ($('#serial')[0].validity.valid)
+		if ($('#serial')[0].validity.valid && $('#serial').val())
 			select(selected);
 	});
 });
 		</script>
 	</head>
 	<body>
-		<h1>"I found an RS41" generator</h1>
+		<h2>"I found an RS41" generator</h2>
 		<div>
 			<label for 'serial'>Serial of the sonde you (did not) find</label>
-			<input type='text' id='serial' pattern='[A-Z][0-9][0-9][0-9][0-9][0-9][0-9][0-9]' onchange='select(selected)' value='A1234567' size='7'></input>
+			<input type='text' id='serial' pattern='[A-Za-z][0-9][0-9][0-9][0-9][0-9][0-9][0-9]' onchange='select(selected)' value='A1234567' size='7'></input>
 			<br>
+			(one letter followed by 7 digits)
 		</div>
-		<fieldset>
-			<legend>Choose the sonde image</legend>
-			<select id='picker' class="image-picker">
-			</select>
-		</fieldset>
 		<div style='display:none'>
 			<canvas id='label' width='550' height='150'></canvas>
 		</div>
-		<div>
-			<canvas id="canvas" width="500" height="800"></canvas>
-			<button onclick='saveImage()'>Download image</button>
+		<div style='margin-top:20px; display:flex'>
+			<div style='width:105px'>
+				<select id='picker' class="image-picker"></select>
+			</div>
+			<div style='flex-grow:1'>
+				<canvas id="canvas" width="500" height="800"></canvas>
+				<button onclick='saveImage()'>Download image</button>
+			</div>
 		</div>
 	</body>
 </html>
