@@ -15,7 +15,6 @@
 			font-style: normal;
 		}
 		body { font-family: Verdana; background-color: bisque;  }
-		h2 { text-align: center }
 		fieldset {
 			margin: 10px;
 			padding: 0 10px 10px;
@@ -33,6 +32,35 @@
 		}
 		input:invalid { border: 2px dashed red; color:red; font-weight: bold; }
 		input:valid { border: 2px solid black; }
+		
+.ribbon-1 {
+  position: fixed;
+  background: #E74C3C;
+  box-shadow: 0 0 0 999px #E74C3C;
+  color:white;
+  clip-path: inset(0 -100%);
+  padding-top:5px;
+  padding-bottom:5px;
+}
+.left {
+  inset: 0 auto auto 0;
+  transform-origin: 100% 0;
+  transform: translate(-29.3%) rotate(-45deg);
+}
+.right {
+  inset: 0 0 auto auto;
+  transform-origin: 0 0;
+  transform: translate(29.3%) rotate(45deg);
+}
+
+.box {
+  max-width:500px;
+  height:200px;
+  margin:50px auto 0;
+  background:lightblue;
+  position:relative;
+}
+
 		</style>
 		<link rel="stylesheet" href="css/image-picker.css">
 		<script src='js/jquery-3.7.1.min.js'></script>
@@ -150,7 +178,7 @@ function select(index) {
 function saveImage() {
 	var tags={};
 	tags[piexif.ImageIFD.ImageDescription]='"I found an RS41" generator';
-	tags[piexif.ImageIFD.ProcessingSoftware]='"I found an RS41" generator';
+	tags[piexif.ImageIFD.ProcessingSoftware]='https://www.ydiaeresis.eu/rs41gen/rs41.html';
 	const exif= {"0th": tags,"Exif":{},"GPS":{}};
 	const bytes=piexif.dump(exif);
 	const link = document.createElement('a');
@@ -195,6 +223,7 @@ $(document).ready(function() {
 	</head>
 	<body>
 		<h2>"I found an RS41" generator</h2>
+		<div class="ribbon-1 right" style='text-align:center'>***Banned***<br>from the Radiosonde Italia<br>Facebook group!</div>
 		<div>
 			<label for 'serial'>Serial of the sonde you (did not) find</label>
 			<input type='text' id='serial' pattern='[A-Za-z][0-9][0-9][0-9][0-9][0-9][0-9][0-9]' onchange='select(selected)' value='A1234567' size='7'></input>
